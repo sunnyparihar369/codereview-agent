@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for dev (includes dev deps)
+    container_name: codereview-api
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+      - GITHUB_APP_ID=${GITHUB_APP_ID}
+      - GITHUB_APP_PRIVATE_KEY=${GITHUB_APP_PRIVATE_KEY}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DEFAULT_LLM_PROVIDER=${DEFAULT_LLM_PROVIDER:-anthropic}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_PROJECT=codereview-agent-dev
+      - LANGSMITH_TRACING=true
+    ports:
+      - "8000:8000"
+      - "9090:9090"
+    volumes:
+      - ./app:/app/app:ro
+    command: python -m app
+    depends_on:
+      - redis
+    networks:
+      - codereview-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: codereview-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - codereview-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: LangSmith local proxy for development
+  # langsmith:
+  #   image: langchain/langsmith:latest
+  #   container_name: codereview-langsmith
+  #   environment:
+  #     - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+  #   ports:
+  #     - "1984:1984"
+  #   networks:
+  #     - codereview-network
+
+volumes:
+  redis-data:
+
+networks:
+  codereview-network:
+    driver: bridge
