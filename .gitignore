@@ -71,3 +71,6 @@ temp/
 # Backup files
 *.bak
 
+# Interview & learning notes (local only)
+LEARNING_NOTES.md
+

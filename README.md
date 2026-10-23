@@ -193,10 +193,6 @@ codereview-agent/
 └── README.md
 ```
 
-## Interview Talking Points
-
-See `LEARNING_NOTES.md` for detailed architecture decisions, trade-offs, and anticipated interview questions with answers.
-
 ## License
 
 MIT
